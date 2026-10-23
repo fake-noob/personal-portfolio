@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --accent: #a855f7;
+  --accent-rgb: 168, 85, 247;
+  --accent-transition: 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-ink text-zinc-200 font-sans antialiased;
+  overflow-x: hidden;
+  /* the WebGL canvas sits behind everything */
+  background-color: #05070c;
+}
+
+::selection {
+  background: rgb(var(--accent-rgb) / 0.35);
+  color: #fafafa;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #09090b;
+}
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--accent-rgb) / 0.6);
+}
+
+/* Accent-aware utilities — transition handled by the CSS variable swap */
+.accent-text {
+  color: var(--accent);
+  transition: color var(--accent-transition);
+}
+.accent-bg {
+  background-color: var(--accent);
+  transition: background-color var(--accent-transition);
+}
+.accent-border {
+  border-color: rgb(var(--accent-rgb) / 0.4);
+  transition: border-color var(--accent-transition);
+}
+.accent-glow {
+  box-shadow:
+    0 0 20px rgb(var(--accent-rgb) / 0.25),
+    0 0 60px rgb(var(--accent-rgb) / 0.12);
+  transition: box-shadow var(--accent-transition);
+}
+.accent-ring {
+  outline-color: var(--accent);
+  transition: outline-color var(--accent-transition);
+}
+
+/* Glassmorphism card — rgba(255,255,255,0.05) on a 1px white/10 hairline */
+.glass {
+  @apply border border-white/10 bg-white/[0.05] backdrop-blur-xl;
+}
+
+/* Grainy noise overlay */
+.grain::after {
+  content: '';
+  position: fixed;
+  inset: -200%;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain 8s steps(10) infinite;
+}
+
+@keyframes grain {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-2%, 2%); }
+  50% { transform: translate(2%, -1%); }
+  75% { transform: translate(1%, 2%); }
+}
+
+/* Spotlight hover for bento cards */
+.spotlight-card {
+  position: relative;
+  overflow: hidden;
+}
+.spotlight-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 400ms ease;
+  background: radial-gradient(
+    500px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgb(var(--accent-rgb) / 0.12),
+    transparent 45%
+  );
+  pointer-events: none;
+}
+.spotlight-card:hover::before {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .grain::after {
+    animation: none;
+  }
+  .animate-marquee,
+  .animate-marquee-reverse {
+    animation: none !important;
+  }
+}
