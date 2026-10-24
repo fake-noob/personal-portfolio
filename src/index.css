@@ -12,16 +12,25 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  /* Discrete tab system — no free page scrolling anywhere. */
+  scroll-behavior: auto;
+  height: 100%;
+  overflow: hidden;
 }
 
 body {
   @apply bg-ink text-zinc-200 font-sans antialiased;
-  overflow-x: hidden;
+  height: 100%;
+  overflow: hidden;
   /* the WebGL canvas sits behind everything */
   min-height: 100vh;
   background-image: linear-gradient(var(--background), var(--background-end));
   background-attachment: fixed;
+}
+
+#root {
+  height: 100%;
+  overflow: hidden;
 }
 
 ::selection {

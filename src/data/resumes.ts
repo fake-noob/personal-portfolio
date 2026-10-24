@@ -165,31 +165,18 @@ export const experience: ExperienceRole[] = [
     bullets: [
       {
         text: 'Took over the Weather Ways project mid-cycle and delivered its remaining three sprints on a live three-repository stack (Flutter/GetX, Node.js/Prisma, Next.js) through client User Acceptance Testing.',
-        personas: ['aiml', 'swe'],
-      },
-      {
-        text: 'Inherited the Weather Ways project mid-cycle and delivered its remaining three sprints to a live client, working through User Acceptance Testing and direct client feedback.',
-        personas: ['pm'],
       },
       {
         text: 'Integrated the Google Gemini API to turn real-time weather context into dynamic route optimizations, managing app state and latency so AI output became safe, navigable routes.',
-        personas: ['aiml'],
-      },
-      {
-        text: 'Shipped Gemini-powered, weather-aware route optimization, handling latency and state so AI output became safe, usable routes for end users.',
-        personas: ['pm'],
       },
       {
         text: 'Implemented OAuth 2.0 identity-token validation and a Twilio SMS fan-out that dispatches high-severity emergency alerts (e.g. sudden road closures), with global administrative kill-switches.',
-        personas: ['swe', 'pm'],
       },
       {
         text: 'Added AWS CloudWatch (backend) and Firebase Crashlytics (mobile) observability to catch silent failures and edge cases in production.',
-        personas: ['aiml', 'swe', 'pm'],
       },
       {
         text: 'Rewrote coordinate-parsing logic to fix client-reported map rendering artifacts, so backend spatial data renders as smooth traffic-flow polylines on mobile.',
-        personas: ['swe', 'aiml', 'pm'],
       },
     ],
   },
@@ -206,7 +193,6 @@ export const experience: ExperienceRole[] = [
       },
       {
         text: 'Tailored instruction to each batch\u2019s performance; students are now enrolled across IBA programs and universities abroad.',
-        personas: ['pm', 'aiml', 'swe'],
       },
     ],
   },
@@ -305,6 +291,19 @@ export const projects: Project[] = [
     span: 'normal',
     personas: ['swe', 'pm'],
   },
+  {
+    id: 's4',
+    title: 'S4 Galaxy Classifier',
+    subtitle: 'Astrophysics classification · coursework-driven build',
+    description:
+      'A galaxy image classifier built in C++ and Python on a PyTorch model, with Verilog in the toolchain — grounded in the Computer Architecture & Assembly Language and Digital Logic & Circuit Design coursework.',
+    tech: ['C++', 'Python', 'Verilog', 'PyTorch'],
+    bullets: [
+      'Bridges low-level hardware coursework and modern deep learning: the model pipeline runs in Python/PyTorch while the performance-critical path is implemented in C++.',
+    ],
+    span: 'normal',
+    personas: ['aiml', 'swe'],
+  },
 ]
 
 /* ------------------------------------------------------------------ */
@@ -391,12 +390,12 @@ export const skillCategories: SkillCategory[] = [
 /* ------------------------------------------------------------------ */
 
 export const certifications: Certification[] = [
+  { title: 'AI for Professionals', issuer: 'LUMSX / ILMx', personas: ['aiml', 'swe', 'pm'] },
+  { title: 'Business Communication', issuer: 'ILMx', personas: ['pm'] },
   { title: 'Supervised Learning with scikit-learn', issuer: 'DataCamp', personas: ['aiml'] },
   { title: 'Cluster Analysis in Python', issuer: 'DataCamp', personas: ['aiml'] },
   { title: 'Introduction to MLflow', issuer: 'DataCamp', personas: ['aiml', 'swe'] },
-  { title: 'AI for Professionals', issuer: 'LUMSX / ILMx', personas: ['aiml', 'swe', 'pm'] },
-  { title: 'Introduction to Git', issuer: 'DataCamp', status: 'In Progress', personas: ['swe'] },
-  { title: 'Business Communication', issuer: 'ILMx', personas: ['pm'] },
+  { title: 'Introduction to Git', issuer: 'DataCamp', personas: ['swe'] },
 ]
 
 /* ------------------------------------------------------------------ */

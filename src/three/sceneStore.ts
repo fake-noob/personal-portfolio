@@ -1,13 +1,20 @@
 /**
- * Mutable per-frame scene state shared between GSAP ScrollTrigger,
- * DOM pointer handlers and the R3F render loop — avoids React re-renders
- * inside useFrame. React-facing values (selection, active section) go
- * through pub/sub so DOM overlays stay in sync.
+ * Mutable per-frame scene state shared between the tab system, DOM pointer
+ * handlers and the R3F render loop — avoids React re-renders inside
+ * useFrame. React-facing values (selection, active tab) go through pub/sub
+ * so DOM overlays stay in sync.
  */
 import { useSyncExternalStore } from 'react'
 import * as THREE from 'three'
 
-export type ActiveSection = 'idle' | 'hero' | 'projects' | 'skills' | 'certifications'
+export const TAB_COUNT = 5
+export const TAB_NAMES = [
+  'Introduction',
+  'Neural Network',
+  'Deep Dive',
+  'Certifications',
+  'Contact',
+] as const
 
 export const frame = {
   /** raw normalized pointer, -1..1, y up */
@@ -15,7 +22,10 @@ export const frame = {
   /** smoothed pointer used for camera parallax */
   pointer: { x: 0, y: 0 },
   /** pointer parallax strength in world units */
-  parallaxStrength: 1.7,
+  parallaxStrength: 1.5,
+
+  /** discrete tab state, 0..4 — drives camera pose, blur and interactivity */
+  tab: 0,
 
   /** node focus blend 0..1 + the poses it blends toward */
   focusBlend: 0,
@@ -23,24 +33,18 @@ export const frame = {
   focusTarget: new THREE.Vector3(),
 
   /**
-   * 1 while the user is click-drag orbiting (OrbitControls owns the camera),
-   * 0 while CameraRig drives it. Reset by scrolling or any node selection.
+   * 1 while the user is click-drag orbiting in Tab 1 (OrbitControls owns the
+   * camera), 0 while CameraRig drives it. Reset by tab changes / selection.
    */
   orbitActive: 0,
 
-  /** 0..1 scroll progress per choreographed section */
-  projectsProgress: 0,
-  skillsProgress: 0,
-  certProgress: 0,
-
-  /** global lights-out factor for the certifications section */
+  /** global lights-out factor (Tab 3 is fully dark, Tab 4 half) */
   certDim: 0,
-  /** pointer currently hovering the certifications section (0/1) */
+  /** pointer currently inside the certifications flashlight (0/1) */
   certHover: 0,
 
-  /** selected project node id */
+  /** selected output node id (drives reverse-traversal glow + focus) */
   selectedId: null as string | null,
-  activeSection: 'idle' as ActiveSection,
 }
 
 type Listener = () => void
@@ -55,7 +59,7 @@ function subscribe(l: Listener) {
   }
 }
 
-/** Select a project node (or null to clear). Drives camera focus + DOF. */
+/** Select an output node (or null to clear). Drives camera focus + glow. */
 export function selectProject(id: string | null) {
   frame.orbitActive = 0 // any selection change returns the camera to the rig
   if (frame.selectedId === id) return
@@ -63,9 +67,16 @@ export function selectProject(id: string | null) {
   emit()
 }
 
-export function setActiveSection(s: ActiveSection) {
-  if (frame.activeSection === s) return
-  frame.activeSection = s
+/** Switch tabs: clears the selection and hands the camera back to the rig. */
+export function setTab(tab: number) {
+  const t = tab < 0 ? 0 : tab > TAB_COUNT - 1 ? TAB_COUNT - 1 : tab
+  if (frame.tab === t) return
+  if (frame.selectedId) {
+    frame.selectedId = null
+  }
+  frame.orbitActive = 0
+  frame.focusBlend = 0
+  frame.tab = t
   emit()
 }
 

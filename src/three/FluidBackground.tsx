@@ -1,14 +1,13 @@
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { usePersona } from '../context/PersonaContext'
 import { frame } from './sceneStore'
 
 /**
  * Fullscreen fluid-gradient shader background.
  * Domain-warped FBM noise over the global black → midnight-blue (#020813)
- * gradient with muted teal / deep-blue wisps, tinted with the active persona
- * accent, dimmed when the certifications section drops the global lighting.
+ * gradient with muted teal / deep-blue wisps, dimmed when the active tab
+ * drops the global lighting (Tab 3 is fully lights-out).
  */
 
 const vertexShader = /* glsl */ `
@@ -105,7 +104,6 @@ const fragmentShader = /* glsl */ `
 `
 
 export default function FluidBackground() {
-  const { persona } = usePersona()
   const matRef = useRef<THREE.ShaderMaterial>(null)
 
   const uniforms = useMemo(
@@ -118,9 +116,8 @@ export default function FluidBackground() {
     [],
   )
 
-  // Keep accent in sync with persona (lerped in useFrame for a smooth swap)
-  const target = useMemo(() => new THREE.Color(persona.accent), [persona.accent])
-  target.set(persona.accent)
+  // Muted teal accent (fixed palette — no persona switching)
+  const target = useMemo(() => new THREE.Color('#0096b4'), [])
 
   useFrame((state, delta) => {
     const mat = matRef.current
@@ -134,7 +131,6 @@ export default function FluidBackground() {
       mat.uniforms.uResolution.value.set(w, h)
     }
 
-    // Smooth accent transition
     mat.uniforms.uAccent.value.lerp(target, Math.min(1, delta * 2.5))
 
     // Smoothly follow the certifications dim factor
