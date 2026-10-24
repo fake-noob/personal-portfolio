@@ -16,7 +16,7 @@ function mulberry32(seed: number) {
 const rand = mulberry32(20260815)
 
 /* Topology: 4 hidden layers then an output layer of project nodes. */
-const LAYER_X = [-6.4, -3.6, -0.8, 2.0, 5.2]
+const LAYER_X = [-6.4, -3.6, -0.8, 2.0, 5.4]
 const LAYER_COUNTS = [4, 6, 6, 5, projects.length]
 
 export interface NetworkNode {
@@ -25,16 +25,21 @@ export interface NetworkNode {
   index: number
 }
 
+/**
+ * Hidden layers are volumes, not walls: X jitter per node, a fan-out that
+ * widens with depth, and generous Z spread — a genuinely 3D network.
+ */
 export const hiddenNodes: NetworkNode[][] = []
 for (let l = 0; l < LAYER_COUNTS.length - 1; l++) {
   const count = LAYER_COUNTS[l]
   const layer: NetworkNode[] = []
+  const zSpread = 1.4 + l * 0.9
   for (let i = 0; i < count; i++) {
     layer.push({
       pos: new THREE.Vector3(
-        LAYER_X[l],
-        (i - (count - 1) / 2) * 1.18,
-        (rand() - 0.5) * 1.1,
+        LAYER_X[l] + (rand() - 0.5) * 0.55,
+        (i - (count - 1) / 2) * 1.18 + (rand() - 0.5) * 0.3,
+        (rand() - 0.5) * zSpread,
       ),
       layer: l,
       index: i,
@@ -43,19 +48,74 @@ for (let l = 0; l < LAYER_COUNTS.length - 1; l++) {
   hiddenNodes.push(layer)
 }
 
-/** Output layer = one node per project. */
+/**
+ * Semantic clusters — each occupies a distinct region of 3D space on the
+ * output side of the network. Muted colours per the dark-sleek palette.
+ */
+export interface ProjectCluster {
+  id: string
+  label: string
+  color: string
+  center: THREE.Vector3
+  members: string[]
+}
+
+export const projectClusters: ProjectCluster[] = [
+  {
+    id: 'ml',
+    label: 'Machine Learning',
+    color: '#0096b4',
+    center: new THREE.Vector3(5.9, 1.75, -1.5),
+    members: ['mapf', 'rag'],
+  },
+  {
+    id: 'fullstack',
+    label: 'Full-Stack',
+    color: '#4577c9',
+    center: new THREE.Vector3(5.9, -1.75, 1.5),
+    members: ['pantrypal', 'weatherways'],
+  },
+  {
+    id: 'pm',
+    label: 'Product Management',
+    color: '#a8946b',
+    center: new THREE.Vector3(8.6, 0.1, -0.7),
+    members: ['academiq'],
+  },
+]
+
+/** Output layer = one node per project, orbiting its cluster center in X/Y/Z. */
 export interface ProjectNode {
   id: string
   pos: THREE.Vector3
 }
-export const projectNodes: ProjectNode[] = projects.map((p, i) => ({
-  id: p.id,
-  pos: new THREE.Vector3(
-    LAYER_X[4],
-    (i - (projects.length - 1) / 2) * 1.3,
-    (rand() - 0.5) * 0.7,
+
+const clusteredIds = new Set(projectClusters.flatMap((c) => c.members))
+
+export const projectNodes: ProjectNode[] = [
+  ...projectClusters.flatMap((c) =>
+    c.members.map((id, i) => {
+      const n = c.members.length
+      const angle = (i / n) * Math.PI * 2 + 0.7
+      const r = n > 1 ? 1.05 : 0
+      return {
+        id,
+        pos: new THREE.Vector3(
+          c.center.x + Math.cos(angle) * r,
+          c.center.y + (i - (n - 1) / 2) * 1.15,
+          c.center.z + Math.sin(angle) * r,
+        ),
+      }
+    }),
   ),
-}))
+  // Defensive: any project not assigned to a cluster still gets an output node.
+  ...projects
+    .filter((p) => !clusteredIds.has(p.id))
+    .map((p, i) => ({
+      id: p.id,
+      pos: new THREE.Vector3(LAYER_X[4], 3.4 + i * 1.3, (rand() - 0.5) * 1.4),
+    })),
+]
 
 export const projectNodePositions: Record<string, THREE.Vector3> =
   Object.fromEntries(projectNodes.map((n) => [n.id, n.pos]))
@@ -80,7 +140,7 @@ for (let l = 0; l < allLayers.length - 1; l++) {
 
 export const edgePositions = new Float32Array(edgePairs.flat())
 
-/** Accent edges: hidden layer → each project node (for persona highlighting). */
+/** Accent edges: hidden layer → each project node (for highlight). */
 export const projectEdges: Record<string, Float32Array> = {}
 for (const pn of projectNodes) {
   const arr: number[] = []

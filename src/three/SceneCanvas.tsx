@@ -1,5 +1,6 @@
 import { Suspense, useEffect, useRef } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { OrbitControls } from '@react-three/drei'
 import { Environment, Lightformer } from '@react-three/drei'
 import { Bloom, DepthOfField, EffectComposer, Vignette } from '@react-three/postprocessing'
 import * as THREE from 'three'
@@ -43,7 +44,7 @@ function Lights() {
       <ambientLight ref={ambient} intensity={1.0} color="#c9d8ff" />
       <directionalLight ref={key} position={[6, 9, 12]} intensity={1.7} color="#e8f1ff" />
       <pointLight ref={skillsFill} position={[0, 0, -33]} intensity={26} distance={32} decay={2} color="#9fc4ff" />
-      <pointLight position={[0, 1, 5]} intensity={14} distance={20} decay={2} color="#7c5cff" />
+      <pointLight position={[0, 1, 5]} intensity={14} distance={20} decay={2} color="#355f96" />
     </>
   )
 }
@@ -90,16 +91,67 @@ function DebugBridge() {
 }
 
 export default function SceneCanvas() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  /**
+   * Free-look hand-off: a real click-drag on the bare canvas (more than 6px)
+   * flags the gesture as an orbit, and CameraRig yields the camera to
+   * OrbitControls until the user scrolls or selects a node.
+   */
+  useEffect(() => {
+    const el = canvasRef.current
+    if (!el) return
+    let down = false
+    let sx = 0
+    let sy = 0
+    const onDown = (e: PointerEvent) => {
+      down = true
+      sx = e.clientX
+      sy = e.clientY
+    }
+    const onMove = (e: PointerEvent) => {
+      if (!down || frame.orbitActive) return
+      if (Math.hypot(e.clientX - sx, e.clientY - sy) > 6) frame.orbitActive = 1
+    }
+    const onUp = () => {
+      down = false
+    }
+    el.addEventListener('pointerdown', onDown)
+    window.addEventListener('pointermove', onMove, { passive: true })
+    window.addEventListener('pointerup', onUp)
+    window.addEventListener('pointercancel', onUp)
+    return () => {
+      el.removeEventListener('pointerdown', onDown)
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+      window.removeEventListener('pointercancel', onUp)
+    }
+  }, [])
+
   return (
+    /* Dedicated sticky background: full-viewport canvas at z-0. DOM
+       overlays (z-10, mostly pointer-events-none) scroll above it, so the
+       right side of the screen is always clear for click-drag orbiting. */
     <div className="fixed inset-0 z-0">
       <Canvas
+        ref={canvasRef}
         dpr={[1, 1.75]}
         shadows="percentage"
         gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
         camera={{ position: [0, 0.35, 15], fov: 50, near: 0.1, far: 160 }}
         onPointerMissed={() => selectProject(null)}
       >
-        <color attach="background" args={['#05070c']} />
+        <OrbitControls
+          makeDefault
+          enablePan={false}
+          enableZoom={false}
+          enableDamping
+          dampingFactor={0.06}
+          rotateSpeed={0.65}
+          minPolarAngle={0.15}
+          maxPolarAngle={Math.PI - 0.15}
+        />
+        <color attach="background" args={['#020813']} />
         <Suspense fallback={null}>
           <FluidBackground />
           <Lights />
@@ -114,7 +166,7 @@ export default function SceneCanvas() {
               position={[-5, 0, 2]}
               rotation-y={Math.PI / 2}
               scale={[8, 5, 1]}
-              color="#4B0082"
+              color="#1e3a6e"
             />
             <Lightformer
               intensity={0.7}

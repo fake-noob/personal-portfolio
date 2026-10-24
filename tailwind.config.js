@@ -10,7 +10,7 @@ export default {
       },
       colors: {
         ink: '#09090b',
-        card: '#18181b',
+        card: 'rgba(0, 150, 180, 0.15)',
       },
       keyframes: {
         marquee: {

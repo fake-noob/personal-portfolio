@@ -22,6 +22,12 @@ export const frame = {
   focusCam: new THREE.Vector3(),
   focusTarget: new THREE.Vector3(),
 
+  /**
+   * 1 while the user is click-drag orbiting (OrbitControls owns the camera),
+   * 0 while CameraRig drives it. Reset by scrolling or any node selection.
+   */
+  orbitActive: 0,
+
   /** 0..1 scroll progress per choreographed section */
   projectsProgress: 0,
   skillsProgress: 0,
@@ -51,6 +57,7 @@ function subscribe(l: Listener) {
 
 /** Select a project node (or null to clear). Drives camera focus + DOF. */
 export function selectProject(id: string | null) {
+  frame.orbitActive = 0 // any selection change returns the camera to the rig
   if (frame.selectedId === id) return
   frame.selectedId = id
   emit()

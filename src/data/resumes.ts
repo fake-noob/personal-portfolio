@@ -75,8 +75,8 @@ export const personas: Persona[] = [
     id: 'aiml',
     label: 'AI / ML',
     shortLabel: 'AI/ML',
-    accent: '#a855f7', // Electric Purple
-    accentRgb: '168, 85, 247',
+    accent: '#0096b4', // Muted Teal
+    accentRgb: '0, 150, 180',
     headline: 'AI/ML Engineer',
     typewriterPhrases: [
       'Deep Q-Networks.',
@@ -91,8 +91,8 @@ export const personas: Persona[] = [
     id: 'swe',
     label: 'Software Engineering',
     shortLabel: 'SWE',
-    accent: '#22d3ee', // Cyberpunk Cyan
-    accentRgb: '34, 211, 238',
+    accent: '#4577c9', // Deep Blue
+    accentRgb: '69, 119, 201',
     headline: 'Software Engineer',
     typewriterPhrases: [
       '40+ REST endpoints.',
@@ -107,8 +107,8 @@ export const personas: Persona[] = [
     id: 'pm',
     label: 'Product Management',
     shortLabel: 'PM',
-    accent: '#f59e0b', // Amber
-    accentRgb: '245, 158, 11',
+    accent: '#a8946b', // Muted Sand
+    accentRgb: '168, 148, 107',
     headline: 'Product Manager',
     typewriterPhrases: [
       'user surveys → specs.',

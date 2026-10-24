@@ -32,7 +32,14 @@ export function useScrollDirector() {
       if (e.key === 'Escape') selectProject(null)
     }
 
+    // Any scroll anywhere returns a free-look orbit to the camera rig —
+    // ScrollTrigger callbacks only fire while their own range is active.
+    const onScroll = () => {
+      frame.orbitActive = 0
+    }
+
     window.addEventListener('pointermove', onMove, { passive: true })
+    window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('keydown', onKey)
 
     // ---- camera drives ----
@@ -43,6 +50,7 @@ export function useScrollDirector() {
         end: 'bottom bottom',
         onUpdate: (self) => {
           frame.projectsProgress = self.progress
+          frame.orbitActive = 0 // scrolling returns the camera from free-look
           projectsMV.set(self.progress)
           if (self.progress <= 0.001 && frame.selectedId) selectProject(null)
         },
@@ -56,6 +64,7 @@ export function useScrollDirector() {
         end: 'bottom bottom',
         onUpdate: (self) => {
           frame.skillsProgress = self.progress
+          frame.orbitActive = 0
           skillsMV.set(self.progress)
           // leaving the network must release a focused node
           if (self.progress > 0.02 && frame.selectedId) selectProject(null)
@@ -71,6 +80,7 @@ export function useScrollDirector() {
         onUpdate: (self) => {
           const p = self.progress
           frame.certProgress = p
+          frame.orbitActive = 0
           certMV.set(p)
           if (p > 0.02 && frame.selectedId) selectProject(null)
           // lights out on entry, back on for the footer
@@ -128,6 +138,7 @@ export function useScrollDirector() {
       window.clearInterval(viewportWatch)
       window.removeEventListener('load', onLoad)
       window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('scroll', onScroll)
       window.removeEventListener('keydown', onKey)
       triggers.forEach((t) => t.kill())
     }

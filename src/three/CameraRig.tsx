@@ -21,6 +21,8 @@ const CERTS_END = { x: 0, y: 0.4, z: -86.5, tx: 0, ty: -0.5, tz: -95 }
 
 const _desired = new THREE.Vector3()
 const _target = new THREE.Vector3()
+const _lookMatrix = new THREE.Matrix4()
+const _lookQuat = new THREE.Quaternion()
 
 const lerp = THREE.MathUtils.lerp
 
@@ -34,6 +36,13 @@ export default function CameraRig() {
     // Smooth the raw pointer for the parallax offset
     f.pointer.x += (f.mouse.x - f.pointer.x) * pK
     f.pointer.y += (f.mouse.y - f.pointer.y) * pK
+
+    // ---- free-look hand-off ----
+    // While the user click-drags the canvas, OrbitControls owns the camera
+    // entirely (360° revolution). The rig reclaims it when the user scrolls
+    // or when a node focus flight must run — both reset orbitActive.
+    if (f.focusBlend > 0.02) f.orbitActive = 0
+    if (f.orbitActive) return
 
     // ---- base pose from the scroll-driven progress ----
     let bx = HERO.x
@@ -85,8 +94,13 @@ export default function CameraRig() {
       _target.lerp(f.focusTarget, f.focusBlend)
     }
 
+    // Position and orientation both damp toward the desired pose. Orientation
+    // uses a quaternion slerp (instead of an instant lookAt) so reclaiming the
+    // camera from OrbitControls settles smoothly instead of snapping.
     cam.position.lerp(_desired, k)
-    cam.lookAt(_target)
+    _lookMatrix.lookAt(_desired, _target, cam.up)
+    _lookQuat.setFromRotationMatrix(_lookMatrix)
+    cam.quaternion.slerp(_lookQuat, k)
 
     // Gentle hand-held roll from horizontal pointer movement
     cam.rotation.z += (-f.pointer.x * 0.022 - cam.rotation.z) * k

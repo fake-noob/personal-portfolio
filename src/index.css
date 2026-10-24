@@ -3,9 +3,12 @@
 @tailwind utilities;
 
 :root {
-  --accent: #a855f7;
-  --accent-rgb: 168, 85, 247;
+  --background: #000000;
+  --background-end: #020813;
+  --accent: #0096b4;
+  --accent-rgb: 0, 150, 180;
   --accent-transition: 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  --card-bg: rgba(0, 150, 180, 0.15);
 }
 
 html {
@@ -16,7 +19,9 @@ body {
   @apply bg-ink text-zinc-200 font-sans antialiased;
   overflow-x: hidden;
   /* the WebGL canvas sits behind everything */
-  background-color: #05070c;
+  min-height: 100vh;
+  background-image: linear-gradient(var(--background), var(--background-end));
+  background-attachment: fixed;
 }
 
 ::selection {
@@ -39,33 +44,45 @@ body {
   background: rgb(var(--accent-rgb) / 0.6);
 }
 
+/* Glassmorphism card — muted teal rgba(0,150,180,0.15) with a heavy blur.
+   Defined before the accent utilities so .accent-border can opt a card into
+   the accent hairline. */
+.glass {
+  border: 1px solid rgba(0, 150, 180, 0.22);
+  background-color: rgba(0, 150, 180, 0.15);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+}
+
 /* Accent-aware utilities — transition handled by the CSS variable swap */
 .accent-text {
   color: var(--accent);
   transition: color var(--accent-transition);
 }
+/* Solid accent — used where dark text (text-ink) sits on top, e.g. the
+   primary CTA, the active persona pill and badges. */
 .accent-bg {
   background-color: var(--accent);
   transition: background-color var(--accent-transition);
 }
+/* Translucent teal tint for decorative fills that never carry text. */
+.accent-tint {
+  background-color: var(--card-bg);
+  transition: background-color var(--accent-transition);
+}
 .accent-border {
-  border-color: rgb(var(--accent-rgb) / 0.4);
+  border-color: rgb(var(--accent-rgb) / 0.3);
   transition: border-color var(--accent-transition);
 }
 .accent-glow {
   box-shadow:
-    0 0 20px rgb(var(--accent-rgb) / 0.25),
-    0 0 60px rgb(var(--accent-rgb) / 0.12);
+    0 0 15px rgb(var(--accent-rgb) / 0.15),
+    0 0 40px rgb(var(--accent-rgb) / 0.08);
   transition: box-shadow var(--accent-transition);
 }
 .accent-ring {
   outline-color: var(--accent);
   transition: outline-color var(--accent-transition);
-}
-
-/* Glassmorphism card — rgba(255,255,255,0.05) on a 1px white/10 hairline */
-.glass {
-  @apply border border-white/10 bg-white/[0.05] backdrop-blur-xl;
 }
 
 /* Grainy noise overlay */

@@ -2,7 +2,6 @@ import { useRef } from 'react'
 import { Edges, Html } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { usePersona } from '../context/PersonaContext'
 import { skillCategories } from '../data/resumes'
 import { clamp01, frame } from './sceneStore'
 
@@ -36,15 +35,12 @@ function backOut(x: number) {
 }
 
 export default function SkillsLayers() {
-  const { personaId } = usePersona()
   const group = useRef<THREE.Group>(null)
   const panels = useRef<(THREE.Group | null)[]>([])
   const labels = useRef<(HTMLDivElement | null)[]>([])
 
-  const categories = skillCategories.map((cat) => ({
-    ...cat,
-    visibleSkills: cat.skills.filter((s) => s.personas.includes(personaId)),
-  }))
+  // Every skill from every persona rides the panels — content is merged.
+  const categories = skillCategories
 
   useFrame((state) => {
     const g = group.current
@@ -150,7 +146,7 @@ export default function SkillsLayers() {
                 {cat.label}
               </h3>
               <div className="mt-2 flex flex-wrap justify-center gap-1">
-                {cat.visibleSkills.map((s) => (
+                {cat.skills.map((s) => (
                   <span
                     key={s.name}
                     className="rounded-full border border-white/15 bg-white/[0.07] px-1.5 py-[1px] text-[9.5px] leading-4 text-white/75"

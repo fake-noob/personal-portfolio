@@ -1,26 +1,26 @@
 import { motion, useTransform } from 'framer-motion'
-import { usePersona } from '../context/PersonaContext'
 import { skillCategories, type PersonaId, type SkillCategory } from '../data/resumes'
 import { skillsMV } from '../three/scrollValues'
 
 /**
  * DOM overlay for the exploded-assembly section. Skill rows reveal in step
  * with the 3D panels locking into place — driven by the same scroll value.
+ * All skills from all three personas are rendered, grouped by category, in a
+ * left-pinned flashcard so the right side of the screen stays clear.
  */
 
 function SkillRow({
   cat,
   index,
-  personaId,
+  skills,
 }: {
   cat: SkillCategory
   index: number
-  personaId: PersonaId
+  skills: { name: string; personas: PersonaId[] }[]
 }) {
   const start = 0.1 + index * 0.15
   const opacity = useTransform(skillsMV, [start, start + 0.18], [0.12, 1])
   const y = useTransform(skillsMV, [start, start + 0.18], [16, 0])
-  const skills = cat.skills.filter((s) => s.personas.includes(personaId))
 
   return (
     <motion.li
@@ -39,7 +39,7 @@ function SkillRow({
         {skills.map((s) => (
           <span
             key={s.name}
-            className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] text-zinc-400"
+            className="rounded-full border border-[rgba(0,150,180,0.25)] bg-[rgba(0,150,180,0.07)] px-2 py-0.5 font-mono text-[10px] text-zinc-400"
           >
             {s.name}
           </span>
@@ -50,14 +50,14 @@ function SkillRow({
 }
 
 export default function Skills() {
-  const { personaId } = usePersona()
   const progress = useTransform(skillsMV, [0, 1], ['0%', '100%'])
 
   return (
     <section id="skills" className="pointer-events-none relative h-[280vh]">
       <div className="pointer-events-none sticky top-0 h-screen">
-        <div className="mx-auto w-full max-w-6xl px-4 pt-24 sm:px-6">
-          <div className="glass max-w-sm rounded-3xl p-5 sm:p-6">
+        {/* pinned left so the assembly on the right keeps its own space */}
+        <div className="mr-auto w-full max-w-6xl px-4 pt-24 sm:px-6">
+          <div className="glass max-w-2xl rounded-3xl p-5 sm:p-6">
             <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-zinc-500">
               03 — Stack
             </p>
@@ -71,7 +71,7 @@ export default function Skills() {
 
             <ul className="mt-5">
               {skillCategories.map((cat, i) => (
-                <SkillRow key={cat.id} cat={cat} index={i} personaId={personaId} />
+                <SkillRow key={cat.id} cat={cat} index={i} skills={cat.skills} />
               ))}
             </ul>
 

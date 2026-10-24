@@ -11,37 +11,31 @@ import {
   dustPositions,
   edgePositions,
   hiddenNodes,
+  projectClusters,
   projectEdges,
   projectNodePositions,
   projectNodes,
 } from './networkLayout'
-import { frame, selectProject, useSceneValue } from './sceneStore'
+import { clamp01, frame, selectProject, useSceneValue } from './sceneStore'
 
-/**
- * The interactive neural network.
- *
- * - hidden-layer nodes are one InstancedMesh (cheap), pulsing per module
- * - edges are one LineSegments field + per-project accent edges
- * - project nodes are raycast targets; clicking one flies the camera in,
- *   deepens the DOF and opens a glass project card (drei <Html>)
- * - personas dim nodes that belong to another track instead of removing them
- */
-
+const tmp = new THREE.Object3D()
 const REDUCED =
   typeof window !== 'undefined' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-const tmp = new THREE.Object3D()
+/** The spatial cluster a project node belongs to (shared layout source). */
+function getClusterForProject(projectId: string) {
+  return projectClusters.find((c) => c.members.includes(projectId)) ?? null
+}
 
-/* ------------------------------------------------------------------ */
-/* Hidden layer                                                        */
-/* ------------------------------------------------------------------ */
-
+/** Hidden layer nodes — volumetric, instanced per node. */
 function HiddenNodes({ color }: { color: string }) {
   const ref = useRef<THREE.InstancedMesh>(null)
   const flat = useMemo(() => hiddenNodes.flat(), [])
   const geo = useMemo(() => new THREE.SphereGeometry(0.075, 12, 12), [])
 
+  // useLayoutEffect (not useMemo): refs are attached before this runs, so the
+  // instances land at their real coordinates even under reduced motion.
   useLayoutEffect(() => {
     const mesh = ref.current
     if (!mesh) return
@@ -109,12 +103,10 @@ function EdgeField({ color }: { color: string }) {
 function ProjectEdge({
   id,
   color,
-  active,
   selected,
 }: {
   id: string
   color: string
-  active: boolean
   selected: boolean
 }) {
   const mat = useRef<THREE.LineBasicMaterial>(null)
@@ -128,7 +120,7 @@ function ProjectEdge({
   useFrame((_, delta) => {
     const m = mat.current
     if (!m) return
-    const want = active ? (selected ? 0.85 : 0.4) : 0.04
+    const want = selected ? 0.85 : 0.4
     m.opacity += (want - m.opacity) * Math.min(1, delta * 4)
     m.color.lerp(target, Math.min(1, delta * 3))
   })
@@ -226,7 +218,7 @@ function Dust({ color }: { color: string }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Project node + glass detail overlay                                 */
+/* Project node with 3D position, cluster grouping, and click focus    */
 /* ------------------------------------------------------------------ */
 
 function ProjectCard({ project, onClose }: { project: Project; onClose: () => void }) {
@@ -293,50 +285,44 @@ function ProjectCard({ project, onClose }: { project: Project; onClose: () => vo
   )
 }
 
-function ProjectNode({
-  project,
-  color,
-  active,
-}: {
-  project: Project
-  color: string
-  active: boolean
-}) {
+function ProjectNode({ project, color }: { project: Project; color: string }) {
   const group = useRef<THREE.Group>(null)
   const glow = useRef<THREE.MeshBasicMaterial>(null)
   const core = useRef<THREE.MeshStandardMaterial>(null)
   const selectedId = useSceneValue(() => frame.selectedId)
   const selected = selectedId === project.id
   const pos = projectNodePositions[project.id]
+  const cluster = getClusterForProject(project.id)
   const seed = useMemo(() => project.id.charCodeAt(0) % 7, [project.id])
   const scale = useRef(0.45)
 
   useFrame((state, delta) => {
     const t = state.clock.elapsedTime
     const pulse = REDUCED ? 1 : 1 + Math.sin(t * 2.1 + seed) * 0.12
-    const want = (active ? 1 : 0.42) * (selected ? 1.5 : 1) * pulse
+    const want = (selected ? 1.5 : 1) * pulse
     scale.current += (want - scale.current) * Math.min(1, delta * 5)
     if (group.current) group.current.scale.setScalar(scale.current)
 
     if (glow.current) {
-      const oWant = active ? (selected ? 0.5 : 0.2) : 0.05
+      const oWant = selected ? 0.5 : 0.2
       glow.current.opacity += (oWant - glow.current.opacity) * Math.min(1, delta * 4)
     }
     if (core.current) {
-      const eWant = active ? (selected ? 3.4 : 1.6) : 0.15
+      const eWant = selected ? 3.4 : 1.6
       core.current.emissiveIntensity += (eWant - core.current.emissiveIntensity) * Math.min(1, delta * 4)
     }
   })
 
   const onClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation()
-    if (!active) return
+    // Ignore the click that ends an orbit drag (OrbitControls owns that gesture)
+    if (e.delta > 6) return
     selectProject(selected ? null : project.id)
   }
 
   const onOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation()
-    if (active) document.body.style.cursor = 'pointer'
+    document.body.style.cursor = 'pointer'
   }
 
   const onOut = () => {
@@ -347,6 +333,9 @@ function ProjectNode({
     document.body.style.cursor = ''
   }, [])
 
+  // Add subtle cluster-based color tint to the node emissive
+  const clusterColor = cluster ? new THREE.Color(cluster.color) : new THREE.Color(color)
+
   return (
     <group ref={group} position={pos}>
       <mesh>
@@ -354,7 +343,7 @@ function ProjectNode({
         <meshStandardMaterial
           ref={core}
           color={color}
-          emissive={color}
+          emissive={clusterColor}
           emissiveIntensity={1.6}
           roughness={0.25}
           metalness={0.35}
@@ -362,12 +351,12 @@ function ProjectNode({
         />
       </mesh>
 
-      {/* generous invisible-ish hit sphere */}
+      {/* generous invisible-ish hit sphere - scaled per cluster for easy clicking */}
       <mesh onClick={onClick} onPointerOver={onOver} onPointerOut={onOut}>
-        <sphereGeometry args={[0.46, 16, 16]} />
+        <sphereGeometry args={[0.5, 16, 16]} />
         <meshBasicMaterial
           ref={glow}
-          color={color}
+          color={cluster ? cluster.color : color}
           transparent
           opacity={0.18}
           depthWrite={false}
@@ -382,6 +371,57 @@ function ProjectNode({
       )}
     </group>
   )
+}/* ------------------------------------------------------------------ */
+/* Cluster tags — small non-interactive labels floating over each      */
+/* semantic cluster in 3D (drei <Html>; raw DOM is invalid in a group) */
+/* ------------------------------------------------------------------ */
+
+function ClusterTags() {
+  const selectedId = useSceneValue(() => frame.selectedId)
+  const refs = useRef<(HTMLDivElement | null)[]>([])
+
+  // Fade out whenever the camera leaves the network zone so no tag is ever
+  // left floating over the skills / certifications sections.
+  useFrame((state) => {
+    const vis = clamp01((state.camera.position.z + 4) / 8)
+    for (const el of refs.current) if (el) el.style.opacity = `${vis}`
+  })
+
+  return (
+    <group>
+      {projectClusters.map((cluster, i) => {
+        const highlighted = !!selectedId && cluster.members.includes(selectedId)
+        return (
+          <Html
+            key={cluster.id}
+            position={[
+              cluster.center.x,
+              cluster.center.y + (cluster.center.y >= 0 ? 1.7 : -1.7),
+              cluster.center.z,
+            ]}
+            center
+            zIndexRange={[16, 0]}
+            style={{ pointerEvents: 'none' }}
+          >
+            <div
+              ref={(el) => {
+                refs.current[i] = el
+              }}
+              className="whitespace-nowrap rounded-full border px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.25em] backdrop-blur-md"
+              style={{
+                opacity: 0,
+                borderColor: highlighted ? cluster.color : 'rgba(255,255,255,0.12)',
+                color: highlighted ? cluster.color : 'rgba(255,255,255,0.45)',
+                background: highlighted ? 'rgba(2,8,19,0.72)' : 'rgba(2,8,19,0.45)',
+              }}
+            >
+              {cluster.label}
+            </div>
+          </Html>
+        )
+      })}
+    </group>
+  )
 }
 
 /* ------------------------------------------------------------------ */
@@ -389,14 +429,12 @@ function ProjectNode({
 /* ------------------------------------------------------------------ */
 
 export default function NeuralNetwork() {
-  const { personaId, persona } = usePersona()
+  const { persona } = usePersona()
   const camera = useThree((s) => s.camera)
   const selectedId = useSceneValue(() => frame.selectedId)
 
-  const activeSet = useMemo(
-    () => new Set(projects.filter((p) => p.personas.includes(personaId)).map((p) => p.id)),
-    [personaId],
-  )
+  // All nodes stay active regardless of persona — content is merged, not
+  // partitioned; the persona only re-tints the scene.
 
   // Camera flight + DOF hand-off whenever a node is selected / cleared
   useEffect(() => {
@@ -424,20 +462,15 @@ export default function NeuralNetwork() {
       <EdgeField color={persona.accent} />
       <Signals color={persona.accent} />
       <Dust color={persona.accent} />
+      <ClusterTags />
 
       {projectNodes.map((n) => {
         const project = projects.find((p) => p.id === n.id)
         if (!project) return null
-        const active = activeSet.has(n.id)
         return (
           <group key={n.id}>
-            <ProjectEdge
-              id={n.id}
-              color={persona.accent}
-              active={active}
-              selected={selectedId === n.id}
-            />
-            <ProjectNode project={project} color={persona.accent} active={active} />
+            <ProjectEdge id={n.id} color={persona.accent} selected={selectedId === n.id} />
+            <ProjectNode project={project} color={persona.accent} />
           </group>
         )
       })}

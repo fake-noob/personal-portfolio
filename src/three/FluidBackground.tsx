@@ -6,9 +6,9 @@ import { frame } from './sceneStore'
 
 /**
  * Fullscreen fluid-gradient shader background.
- * Domain-warped FBM noise blending Deep Blue → Teal → Indigo → Emerald,
- * tinted with the active persona accent, dimmed when the certifications
- * section drops the global lighting.
+ * Domain-warped FBM noise over the global black → midnight-blue (#020813)
+ * gradient with muted teal / deep-blue wisps, tinted with the active persona
+ * accent, dimmed when the certifications section drops the global lighting.
  */
 
 const vertexShader = /* glsl */ `
@@ -25,11 +25,11 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uAccent;
   uniform float uDim;
 
-  // Palette: Deep Blue #0B192C, Teal #008080, Indigo #4B0082, Emerald
-  const vec3 DEEP_BLUE = vec3(0.043, 0.098, 0.173);
-  const vec3 TEAL      = vec3(0.0,    0.502, 0.502);
-  const vec3 INDIGO    = vec3(0.294,  0.0,   0.510);
-  const vec3 EMERALD   = vec3(0.0,    0.470, 0.330);
+  // Palette: black → midnight #020813 gradient with muted teal / deep-blue wisps
+  const vec3 BLACK     = vec3(0.0,    0.0,    0.0);
+  const vec3 MIDNIGHT  = vec3(0.008,  0.031,  0.075);
+  const vec3 TEAL_WISP = vec3(0.0,    0.180,  0.220);
+  const vec3 BLUE_WISP = vec3(0.055,  0.118,  0.240);
 
   // Simplex-style value noise
   float hash(vec2 p) {
@@ -80,20 +80,22 @@ const fragmentShader = /* glsl */ `
     );
     float f = fbm(p * 1.5 + 3.2 * r);
 
-    // Blend the four palette colors through the warped field
-    vec3 col = mix(DEEP_BLUE, TEAL, smoothstep(0.0, 0.55, f + 0.15 * q.x));
-    col = mix(col, INDIGO, smoothstep(0.25, 0.85, r.y * 0.9 + 0.2 * f));
-    col = mix(col, EMERALD, smoothstep(0.45, 1.0, q.y * 0.7 + f * 0.6));
+    // Global background gradient: pure black (top) → midnight #020813 (bottom)
+    vec3 col = mix(BLACK, MIDNIGHT, 1.0 - uv.y);
+
+    // Muted teal + deep-blue wisps flowing through the warped field
+    col = mix(col, TEAL_WISP, smoothstep(0.35, 0.95, f) * 0.65);
+    col = mix(col, BLUE_WISP, smoothstep(0.40, 1.0, r.y * 0.85 + 0.2 * f) * 0.55);
 
     // Persona accent bleed (subtle, so the toggle tints the whole canvas)
-    col = mix(col, uAccent, 0.10 + 0.12 * smoothstep(0.4, 1.0, f));
+    col = mix(col, uAccent, 0.05 + 0.07 * smoothstep(0.4, 1.0, f));
 
-    // Slow pulse so the field breathes
-    col += 0.035 * sin(uTime * 0.25 + f * 6.2831);
+    // Barely-there breathing pulse
+    col += 0.008 * sin(uTime * 0.25 + f * 6.2831);
 
     // Vignette toward the edges
     float vig = smoothstep(1.25, 0.25, length(p));
-    col *= 0.72 + 0.28 * vig;
+    col *= 0.75 + 0.25 * vig;
 
     // Global dimming for the certifications flashlight section
     col *= (1.0 - uDim * 0.88);
@@ -110,14 +112,13 @@ export default function FluidBackground() {
     () => ({
       uTime: { value: 0 },
       uResolution: { value: new THREE.Vector2(1, 1) },
-      uAccent: { value: new THREE.Color('#7c5cff') },
+      uAccent: { value: new THREE.Color('#0096b4') },
       uDim: { value: 0 },
     }),
     [],
   )
 
   // Keep accent in sync with persona (lerped in useFrame for a smooth swap)
-  const targetAccent = useMemo(() => new THREE.Color('#7c5cff'), [])
   const target = useMemo(() => new THREE.Color(persona.accent), [persona.accent])
   target.set(persona.accent)
 

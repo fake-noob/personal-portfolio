@@ -59,7 +59,7 @@ function ResumeDropdown() {
   }, [])
 
   return (
-    <div className="relative" data-resume-dropdown>
+    <div className="pointer-events-auto relative" data-resume-dropdown>
       <button
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
@@ -112,7 +112,7 @@ export default function Hero() {
   const { persona } = usePersona()
 
   return (
-    <section id="top" className="pointer-events-auto relative flex min-h-svh flex-col justify-center pt-28 pb-20">
+    <section id="top" className="pointer-events-none relative flex min-h-svh flex-col justify-center pt-28 pb-20">
       {/* keeps the headline readable over the WebGL network */}
       <div
         aria-hidden
@@ -193,7 +193,7 @@ export default function Hero() {
           <div className="flex flex-wrap items-center gap-3">
             <a
               href="#projects"
-              className="accent-glow accent-bg group inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-ink transition-transform duration-300 hover:-translate-y-0.5"
+              className="accent-glow accent-bg group inline-flex pointer-events-auto items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-ink transition-transform duration-300 hover:-translate-y-0.5"
             >
               View Projects
               <ArrowDown className="h-4 w-4 transition-transform group-hover:translate-y-0.5" />

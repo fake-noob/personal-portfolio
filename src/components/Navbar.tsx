@@ -19,7 +19,7 @@ export function PersonaSwitcher({ compact = false }: { compact?: boolean }) {
     <div
       role="tablist"
       aria-label="Select professional persona"
-      className="glass flex items-center gap-1 rounded-full p-1"
+      className="glass pointer-events-auto flex items-center gap-1 rounded-full p-1"
     >
       {personas.map((p: (typeof personas)[number]) => {
         const active = p.id === personaId

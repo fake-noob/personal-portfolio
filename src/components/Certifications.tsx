@@ -1,6 +1,5 @@
 import { useEffect, useRef, type PointerEvent as ReactPointerEvent } from 'react'
 import { GraduationCap, ShieldCheck } from 'lucide-react'
-import { usePersona } from '../context/PersonaContext'
 import { certifications, profile } from '../data/resumes'
 import { frame, useSceneValue } from '../three/sceneStore'
 
@@ -14,10 +13,10 @@ import { frame, useSceneValue } from '../three/sceneStore'
  *   casts real shadows on the extruded type — but only while hovered.
  */
 export default function Certifications() {
-  const { personaId } = usePersona()
   const activeSection = useSceneValue(() => frame.activeSection)
   const beamOn = activeSection === 'certifications'
-  const certs = certifications.filter((c) => c.personas.includes(personaId))
+  // One merged shelf: every certification from all three resumes, always.
+  const allCerts = certifications
 
   const host = useRef<HTMLDivElement>(null)
   const target = useRef({ x: 0, y: 0 })
@@ -108,7 +107,7 @@ export default function Certifications() {
 
           <div className="max-h-[52vh] overflow-y-auto pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
-              {certs.map((c) => (
+              {allCerts.map((c) => (
                 <article
                   key={c.title}
                   className="glass rounded-2xl p-4 transition-colors duration-300 hover:border-white/25"

@@ -31,7 +31,7 @@ function TimelineItem({
       </span>
 
       <div
-        className={`glass spotlight-card cursor-pointer rounded-2xl p-5 transition-colors duration-300 hover:border-white/20 sm:p-6 ${
+        className={`glass pointer-events-auto spotlight-card cursor-pointer rounded-2xl p-5 transition-colors duration-300 hover:border-white/20 sm:p-6 ${
           role.highlight ? 'accent-border' : ''
         }`}
         onClick={() => setOpen((o) => !o)}
@@ -113,7 +113,7 @@ export default function Experience() {
   const { personaId } = usePersona()
 
   return (
-    <section id="experience" className="pointer-events-auto scroll-mt-24 py-24 sm:py-32">
+    <section id="experience" className="pointer-events-none scroll-mt-24 py-24 sm:py-32">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <Reveal>
           <div className="mb-14 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
