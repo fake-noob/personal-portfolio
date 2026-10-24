@@ -7,11 +7,12 @@
 import { useSyncExternalStore } from 'react'
 import * as THREE from 'three'
 
-export const TAB_COUNT = 5
+export const TAB_COUNT = 6
 export const TAB_NAMES = [
   'Introduction',
   'Neural Network',
-  'Deep Dive',
+  'Applied Experiences',
+  'Projects & Deliverables',
   'Certifications',
   'Contact',
 ] as const

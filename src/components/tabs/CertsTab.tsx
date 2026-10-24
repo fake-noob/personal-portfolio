@@ -53,7 +53,7 @@ export default function CertsTab() {
     >
       <div className="mx-auto w-full max-w-6xl">
         <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-teal-300/70">
-          04 — Certifications
+          05 — Certifications
         </p>
         <h2 className="mt-1 text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
           The shelf, lit by your cursor

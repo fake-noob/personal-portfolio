@@ -51,7 +51,10 @@ function Node({ def, lit }: { def: NetworkNodeDef; lit: boolean | null }) {
     m.emissiveIntensity += (wantEmissive - m.emissiveIntensity) * k
 
     const pulse = REDUCED ? 1 : 1 + Math.sin(t * 1.6 + seed) * 0.06
-    const wantScale = (lit === true ? 1.5 : hovered ? 1.25 : 1) * pulse
+    // Input layer + output heads swell while the user revolves the network —
+    // makes the multi-head architecture read as a real 3D object.
+    const swell = (def.output || def.col === 0) && frame.orbitActive ? 2.1 : 1
+    const wantScale = (lit === true ? 1.5 : hovered ? 1.25 : 1) * pulse * swell
     scaleRef.current += (wantScale - scaleRef.current) * Math.min(1, delta * 6)
     g.scale.setScalar(scaleRef.current)
   })
@@ -77,7 +80,7 @@ function Node({ def, lit }: { def: NetworkNodeDef; lit: boolean | null }) {
 
   return (
     <group ref={group} position={def.pos}>
-      <mesh onClick={onClick} onPointerOver={onOver} onPointerOut={onOut}>
+      <mesh castShadow receiveShadow onClick={onClick} onPointerOver={onOver} onPointerOut={onOut}>
         <sphereGeometry args={[def.radius, 16, 16]} />
         <meshStandardMaterial
           ref={mat}
@@ -334,19 +337,20 @@ export default function NeuralNetwork() {
     w.__netGroup = group.current
   }, [])
 
-  /* Camera flight toward the clicked node (Tab 1 only). */
+  /* Camera flight toward the clicked node (Tab 1 only).
+     Applied-experience heads fly all the way in (full lock); project heads
+     stop halfway and leave the camera free to keep revolving the lit graph. */
   useEffect(() => {
     const tween = { duration: 1.4, ease: 'power3.inOut', overwrite: 'auto' as const }
-    if (selectedId && frame.tab === 1) {
-      const def = nodeById.get(selectedId)
-      if (def) {
-        const p = def.pos
-        const dir = camera.position.clone().sub(p).normalize()
-        frame.focusCam.copy(p).addScaledVector(dir, 4.2)
-        frame.focusCam.y += 0.35
-        frame.focusTarget.copy(p)
-      }
-      gsap.to(frame, { focusBlend: 1, ...tween })
+    const def = selectedId ? nodeById.get(selectedId) : null
+    if (def && frame.tab === 1) {
+      const halfway = def.col === 3 // projects & deliverables output head
+      const dist = halfway ? 9.5 : 5.0
+      const dir = camera.position.clone().sub(def.pos).normalize()
+      frame.focusCam.copy(def.pos).addScaledVector(dir, dist)
+      frame.focusCam.y += 0.35
+      frame.focusTarget.copy(def.pos)
+      gsap.to(frame, { focusBlend: halfway ? 0.55 : 1, ...tween })
     } else {
       gsap.to(frame, { focusBlend: 0, ...tween })
     }
@@ -360,6 +364,8 @@ export default function NeuralNetwork() {
   useFrame((state, delta) => {
     const g = group.current
     if (!g) return
+    // The certifications tab is a pure dark room — the network disappears.
+    g.visible = frame.tab !== 4
     if (frame.tab === 1) {
       g.rotation.y += (0 - g.rotation.y) * Math.min(1, delta * 2.2)
       g.rotation.x += (0 - g.rotation.x) * Math.min(1, delta * 2.2)

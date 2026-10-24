@@ -11,7 +11,10 @@ import { frame, useSceneValue } from '../../three/sceneStore'
 export default function NetworkTab() {
   const selectedId = useSceneValue(() => frame.selectedId)
   const lit = selectedId ? traverse(selectedId) : null
-  const selected = selectedId ? nodeById.get(selectedId) : null
+  const selected = selectedId ? nodeById.get(selectedId) : undefined
+  // Project heads only zoom halfway — the read-out stays a hint, not a card,
+  // because the user keeps free camera to explore the lit graph.
+  const freeLook = !!selected && selected.col === 3
 
   const litNames = lit
     ? [...lit.nodes].filter((n) => n !== selectedId)
@@ -40,9 +43,14 @@ export default function NetworkTab() {
               {selected.id}
             </p>
             <p className="mt-0.5 text-[11px] text-zinc-400">
-              {litNames.length} prerequisite{litNames.length === 1 ? '' : 's'}{' '}
-              lit · {lit.edges.size} connections active
+              {litNames.length} prerequisite{litNames.length === 1 ? '' : 's'} lit ·{' '}
+              {lit.edges.size} connections active
             </p>
+            {freeLook ? (
+              <p className="mt-2 font-mono text-[10px] leading-relaxed text-teal-200/80">
+                free look — drag anywhere to revolve around the highlighted path
+              </p>
+            ) : (
             <div className="mt-2 flex flex-wrap gap-1.5">
               {litNames.slice(0, 10).map((n) => (
                 <span
@@ -58,6 +66,7 @@ export default function NetworkTab() {
                 </span>
               )}
             </div>
+            )}
           </div>
         )}
 
@@ -79,8 +88,8 @@ export default function NetworkTab() {
             ))}
           </ul>
           <p className="mt-3 font-mono text-[10px] leading-relaxed text-zinc-500">
-            drag to revolve 360° · click a gold/cyan output node to trace its
-            prerequisites · esc to release
+            drag to revolve 360° · gold head = fly-in focus · cyan head = mid-zoom
+            highlight you can orbit · esc to release
           </p>
         </div>
       </div>

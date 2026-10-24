@@ -19,25 +19,38 @@ function Lights() {
   const ambient = useRef<THREE.AmbientLight>(null)
   const key = useRef<THREE.DirectionalLight>(null)
   const fill = useRef<THREE.PointLight>(null)
+  const spot = useRef<THREE.SpotLight>(null)
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const k = Math.min(1, delta * 4)
     // damp the global lights-out factor toward the active tab's target
     const want = tabDim(frame.tab)
     frame.certDim += (want - frame.certDim) * k
 
     const dim = frame.certDim
+    // Tab 1 = interrogation room: the fill lights drop so the swinging
+    // ceiling bulb above carries the scene (and throws moving shadows).
+    const moody = frame.tab === 1 ? 0.42 : 1
     if (ambient.current) {
-      const v = 1.0 - dim * 0.94
+      const v = (1.0 - dim * 0.94) * moody
       ambient.current.intensity += (v - ambient.current.intensity) * k
     }
     if (key.current) {
-      const v = 1.7 - dim * 1.6
+      const v = (1.7 - dim * 1.6) * moody
       key.current.intensity += (v - key.current.intensity) * k
     }
     if (fill.current) {
-      const v = 16 * (1 - dim)
+      const v = 16 * (1 - dim) * moody
       fill.current.intensity += (v - fill.current.intensity) * k
+    }
+
+    // Swinging interrogation bulb — a slow pendulum high above the network.
+    const s = spot.current
+    if (s) {
+      const t = state.clock.elapsedTime
+      const target = frame.tab === 1 ? 300 * (1 - dim * 0.8) : 0
+      s.intensity += (target - s.intensity) * Math.min(1, delta * 2.2)
+      s.position.set(Math.sin(t * 0.45) * 6.5, 11.5, Math.cos(t * 0.31) * 4.5 + 1)
     }
   })
 
@@ -47,6 +60,19 @@ function Lights() {
       <directionalLight ref={key} position={[6, 9, 12]} intensity={1.7} color="#e8f1ff" />
       <pointLight ref={fill} position={[0, 1, 6]} intensity={16} distance={34} decay={2} color="#2e6f8e" />
       <pointLight position={[-8, -2, 4]} intensity={9} distance={30} decay={2} color="#355f96" />
+      <spotLight
+        ref={spot}
+        position={[0, 11.5, 1]}
+        angle={0.62}
+        penumbra={0.55}
+        intensity={0}
+        distance={0}
+        decay={1.35}
+        color="#dce9ff"
+        castShadow
+        shadow-mapSize={[1024, 1024]}
+        shadow-bias={-0.0004}
+      />
     </>
   )
 }
@@ -59,7 +85,8 @@ function Lights() {
 function Effects() {
   const tab = useSceneValue(() => frame.tab)
   const focused = useSceneValue(() => frame.selectedId !== null)
-  const blurred = tab === 0 || tab === 2
+  // Everything except the network tab shows the miniature network, blurred.
+  const blurred = tab !== 1
 
   if (blurred) {
     return (
@@ -143,8 +170,11 @@ export default function SceneCanvas() {
     const onMove = (e: PointerEvent) => {
       if (!down || frame.orbitActive || frame.tab !== 1) return
       if (Math.hypot(e.clientX - sx, e.clientY - sy) > 6) {
-        // dragging orbits — release any focused node first
-        if (frame.selectedId) selectProject(null)
+        // Dragging orbits. A focused experience head releases its lock, but a
+        // selected project keeps its traversal lit so the user can revolve
+        // around the highlighted graph freely.
+        const sel = frame.selectedId ? nodeById.get(frame.selectedId) : null
+        if (sel && sel.col === 2) selectProject(null)
         frame.orbitActive = 1
       }
     }

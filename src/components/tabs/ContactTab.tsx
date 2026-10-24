@@ -85,7 +85,7 @@ export default function ContactTab() {
           }}
         >
           <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-teal-300/70">
-            05 — Contact &amp; Resumes
+            06 — Contact &amp; Resumes
           </p>
           <h2 className="mt-2 text-3xl font-bold tracking-tight text-zinc-50">
             Let&apos;s build something

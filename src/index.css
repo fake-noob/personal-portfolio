@@ -19,7 +19,7 @@ html {
 }
 
 body {
-  @apply bg-ink text-zinc-200 font-sans antialiased;
+  @apply bg-ink text-zinc-200 font-mono antialiased;
   height: 100%;
   overflow: hidden;
   /* the WebGL canvas sits behind everything */
@@ -36,6 +36,14 @@ body {
 ::selection {
   background: rgb(var(--accent-rgb) / 0.35);
   color: #fafafa;
+}
+
+/* Typography: Outfit for headings, JetBrains Mono for everything else */
+h1,
+h2,
+h3,
+.font-display {
+  font-family: 'Outfit', ui-sans-serif, system-ui, sans-serif;
 }
 
 /* Scrollbar */

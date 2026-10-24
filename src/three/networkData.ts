@@ -48,12 +48,12 @@ export const columns: ColumnDef[] = [
     id: 'skills',
     title: 'Core Skills & Tools',
     hint: 'input layer',
-    x: -9.6,
+    x: -11.6,
     color: '#0096b4',
     zCols: 5,
-    rowGap: 0.78,
-    zGap: 0.95,
-    radius: 0.085,
+    rowGap: 0.86,
+    zGap: 1.15,
+    radius: 0.105,
     output: false,
     nodes: [
       'Python', 'PyTorch', 'TensorFlow', 'scikit-learn', 'LangChain',
@@ -73,12 +73,12 @@ export const columns: ColumnDef[] = [
     id: 'coursework',
     title: 'Highlighted Coursework',
     hint: 'hidden layer',
-    x: -3.2,
+    x: -3.9,
     color: '#4577c9',
     zCols: 4,
-    rowGap: 0.82,
-    zGap: 1.0,
-    radius: 0.09,
+    rowGap: 0.92,
+    zGap: 1.2,
+    radius: 0.11,
     output: false,
     nodes: [
       'Statistics', 'Linear Algebra', 'Calculus', 'Discrete Math',
@@ -95,12 +95,12 @@ export const columns: ColumnDef[] = [
     id: 'experience',
     title: 'Applied Experiences',
     hint: 'output head A',
-    x: 3.4,
+    x: 4.1,
     color: '#a8946b',
     zCols: 1,
-    rowGap: 1.6,
+    rowGap: 2.0,
     zGap: 0,
-    radius: 0.21,
+    radius: 0.26,
     output: true,
     nodes: ['EdgeFirm Intern', 'IBAGrads Instructor', 'Enigma Module Head'],
   },
@@ -108,12 +108,12 @@ export const columns: ColumnDef[] = [
     id: 'projects',
     title: 'Projects & Deliverables',
     hint: 'output head B',
-    x: 9.2,
+    x: 11.2,
     color: '#58b7cf',
     zCols: 2,
-    rowGap: 1.15,
-    zGap: 1.3,
-    radius: 0.21,
+    rowGap: 1.35,
+    zGap: 1.5,
+    radius: 0.26,
     output: true,
     nodes: [
       'Weather Ways',
@@ -207,12 +207,12 @@ columns.forEach((col, ci) => {
     const rows = output ? n : Math.ceil(n / col.zCols)
     const zSpread = output ? (col.zGap || 0.9) * 0.6 : col.zGap
     const pos = new THREE.Vector3(
-      col.x + (rand() - 0.5) * 0.5, // slight X scatter inside the column
-      (row - (rows - 1) / 2) * col.rowGap + (rand() - 0.5) * 0.18, // organic Y
+      col.x + (rand() - 0.5) * 1.3, // loose X scatter inside the layer
+      (row - (rows - 1) / 2) * col.rowGap + (rand() - 0.5) * 0.62, // organic Y
       (output
         ? (i % 2 === 0 ? -1 : 1) * zSpread
         : (zi - (col.zCols - 1) / 2) * zSpread) +
-        (rand() - 0.5) * 0.3, // organic Z
+        (rand() - 0.5) * 0.8, // organic Z
     )
     const def: NetworkNodeDef = {
       id,

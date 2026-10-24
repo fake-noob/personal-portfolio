@@ -4,12 +4,13 @@ import SceneCanvas from './three/SceneCanvas'
 import TabControls from './components/TabControls'
 import IntroTab from './components/tabs/IntroTab'
 import NetworkTab from './components/tabs/NetworkTab'
-import DeepDiveTab from './components/tabs/DeepDiveTab'
+import ExperienceTab from './components/tabs/ExperienceTab'
+import ProjectsTab from './components/tabs/ProjectsTab'
 import CertsTab from './components/tabs/CertsTab'
 import ContactTab from './components/tabs/ContactTab'
 import { selectProject, setTab, TAB_COUNT } from './three/sceneStore'
 
-const TABS = [IntroTab, NetworkTab, DeepDiveTab, CertsTab, ContactTab]
+const TABS = [IntroTab, NetworkTab, ExperienceTab, ProjectsTab, CertsTab, ContactTab]
 
 /**
  * Discrete tab system: no navigation bar, no free scrolling.

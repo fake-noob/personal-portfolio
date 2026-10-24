@@ -21,13 +21,18 @@ interface Pose {
   tz: number
 }
 
-/** Tab poses: distant intro → sharp focus → background → dark → centered card */
+/**
+ * Tab poses (6 tabs):
+ *   0 intro · 1 network (sharp) · 2 experiences bg · 3 projects bg
+ *   4 certifications (network hidden) · 5 contact
+ */
 const POSES: Pose[] = [
-  { x: 0, y: 0.5, z: 30, tx: 0, ty: 0, tz: 0 }, // 0 intro (network far + blurred)
-  { x: 0, y: 0, z: 15, tx: 0, ty: 0, tz: 0 }, // 1 network (sharp, centered)
-  { x: 0, y: 1.4, z: 25, tx: 0, ty: 0.4, tz: 0 }, // 2 deep dive (background)
-  { x: 0, y: 0.4, z: 27, tx: 0, ty: 0, tz: 0 }, // 3 certifications (lights out)
-  { x: 0, y: -0.8, z: 23, tx: 0, ty: 0.3, tz: 0 }, // 4 contact
+  { x: 0, y: 0.4, z: 26, tx: 0, ty: 0, tz: 0 }, // 0 intro (mini network, blurred)
+  { x: 0, y: 0, z: 17, tx: 0, ty: 0, tz: 0 }, // 1 network (sharp, centered)
+  { x: 0, y: 1.6, z: 32, tx: 0, ty: 0.4, tz: 0 }, // 2 experiences (mini bg)
+  { x: 0, y: -1.4, z: 34, tx: 0, ty: -0.2, tz: 0 }, // 3 projects (mini bg)
+  { x: 0, y: 0.4, z: 32, tx: 0, ty: 0, tz: 0 }, // 4 certifications (no network)
+  { x: 0, y: -1.0, z: 28, tx: 0, ty: 0.3, tz: 0 }, // 5 contact
 ]
 
 const _desired = new THREE.Vector3()
@@ -106,14 +111,16 @@ export default function CameraRig() {
 export function tabDim(tab: number): number {
   switch (tab) {
     case 0:
-      return 0.18
+      return 0.25
     case 1:
       return 0
     case 2:
-      return 0.35
+      return 0.32
     case 3:
+      return 0.32
+    case 4:
       return 1
     default:
-      return 0.55
+      return 0.5
   }
 }

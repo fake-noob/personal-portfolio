@@ -11,9 +11,9 @@ export default function IntroTab() {
         {/* Profile picture placeholder — frosted frame, teal glow */}
         <div className="shrink-0 rounded-2xl border border-[rgba(0,150,180,0.5)] bg-[rgba(0,150,180,0.1)] p-1.5 shadow-[0_0_55px_rgba(0,150,180,0.28)] backdrop-blur-xl">
           <img
-            src="/profile-placeholder.png"
+            src="/profile.jpg"
             alt="Profile"
-            className="h-36 w-36 rounded-xl object-cover sm:h-44 sm:w-44"
+            className="h-36 w-36 rounded-xl object-cover object-top sm:h-44 sm:w-44"
           />
         </div>
 
